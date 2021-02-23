@@ -99,13 +99,57 @@ $JEDIUSH/run_aero_jediletkf_AOD_LUTs.sh
 source /apps/lmod/7.7.18/init/ksh
 #module use -a /scratch1/NCEPDEV/da/Daniel.Holdaway/opt/modulefiles
 #module load apps/jedi/intel-19.0.5.281
-module purge
-module use -a /scratch1/NCEPDEV/jcsda/Ryan.Honeyager/jedi/modules/
-module load jedi-stack/intel-impi-18.0.5
-module load nco ncview ncl
-module list
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/scratch1/BMC/gsd-fv3-dev/MAPP_2018/bhuang/JEDI-2020/JEDI-FV3/expCodes/fv3-bundle/V20201202/build/lib/"
+#module purge
+#module use -a /scratch1/NCEPDEV/jcsda/Ryan.Honeyager/jedi/modules/
+#module load jedi-stack/intel-impi-18.0.5
+#module load nco ncview ncl
+#module list
+#export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/scratch1/BMC/gsd-fv3-dev/MAPP_2018/bhuang/JEDI-2020/JEDI-FV3/expCodes/fv3-bundle/V20201202/build/lib/"
 
+. ${HOMEjedi}/jedi_module_base.hera
+module load nco ncview ncl netcdf
+module list
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEjedi}/lib/"
+
+echo $LD_LIBRARY_PATH
+
+srun --export=all -n6 ./fv3jedi_letkf.x jediletkf_gfs_aero.yaml jediletif_gfs-aero.run
+err=$?
+
+if [ ${err} -ne 0 ]; then
+   echo "JEDI LETKF failed and exit the programs!!!"
+   exit ${err}
+fi
+
+# we need to now do some ncks things on the deterministic run
+timeprefix=${yyyymmdd}.${hh}0000
+imem=0
+while [ ${imem} -le ${nmem} ]; do
+    if [ ${imem} -eq 0 ]; then
+       memstr="ensmean"
+    else
+       memstr="mem`printf %03d ${imem}`"
+    fi
+
+    memdir=$ROTDIR/enkfgdas.${gPDY}/${gcyc}/${memstr}/RESTART/
+
+    itile=1
+    while [[ $itile -le 6 ]]; do
+        gesfile_trcr=${memdir}/${timeprefix}.fv_tracer.res.tile${itile}.nc.ges
+        anlfile_trcr=${memdir}/${timeprefix}.fv_tracer.res.tile${itile}.nc
+        anlfile_trcr_jedi=${memdir}/${timeprefix}.fv_tracer.res.tile${itile}.nc.anl_jedi
+	/bin/mv ${anlfile_trcr} ${anlfile_trcr_jedi}
+	/bin/cp ${gesfile_trcr} ${anlfile_trcr}
+	((itile=itile+1))
+    done
+    ((imem=imem+1))
+done
+
+/bin/rm -rf replace_vars_mpi.nl
+cat << EOF > replace_vars_mpi.nl
+&replace_vars_mpi_nml
+nens = ${nmem}
+dirin = "$ROTDIR/enkfgdas.${gPDY}/${gcyc}/"
 echo $LD_LIBRARY_PATH
 
 srun --export=all -n6 ./fv3jedi_letkf.x jediletkf_gfs_aero.yaml jediletif_gfs-aero.run

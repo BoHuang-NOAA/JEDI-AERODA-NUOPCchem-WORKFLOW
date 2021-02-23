@@ -74,12 +74,17 @@ mkdir -p $DATA && cd $DATA/
 ndate1=${NDATE}
 # hard coding some modules here...
 source /apps/lmod/7.7.18/init/bash
-module purge
-module use -a /scratch1/NCEPDEV/jcsda/Ryan.Honeyager/jedi/modules/
-module load jedi-stack/intel-impi-18.0.5
-module load nco ncview ncl
+#module purge
+#module use -a /scratch1/NCEPDEV/jcsda/Ryan.Honeyager/jedi/modules/
+#module load jedi-stack/intel-impi-18.0.5
+#module load nco ncview ncl
+#module list
+#export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/scratch1/BMC/gsd-fv3-dev/MAPP_2018/bhuang/JEDI-2020/JEDI-FV3/expCodes/fv3-bundle/V20201202/build/lib/"
+
+. ${HOMEjedi}/jedi_module_base.hera
+module load nco ncview ncl netcdf
 module list
-export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:/scratch1/BMC/gsd-fv3-dev/MAPP_2018/bhuang/JEDI-2020/JEDI-FV3/expCodes/fv3-bundle/V20201202/build/lib/"
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEjedi}/lib/" 
 
 ### Determine cycle and bckg date
 cyy=$(echo $CDATE | cut -c1-4)

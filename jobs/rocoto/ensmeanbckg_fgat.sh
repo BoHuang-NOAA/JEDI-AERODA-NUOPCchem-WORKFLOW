@@ -76,10 +76,14 @@ mkdir -p $DATA && cd $DATA
 source /apps/lmod/7.7.18/init/ksh
 #module use -a /scratch1/NCEPDEV/da/Daniel.Holdaway/opt/modulefiles
 #module load apps/jedi/intel-19.0.5.281
-module use -a /scratch1/NCEPDEV/jcsda/Ryan.Honeyager/jedi/modules/
-module load jedi-stack/intel-impi-18.0.5
-module list
+#module use -a /scratch1/NCEPDEV/jcsda/Ryan.Honeyager/jedi/modules/
+#module load jedi-stack/intel-impi-18.0.5
+#module list
 
+. ${HOMEjedi}/jedi_module_base.hera
+module load nco ncview ncl netcdf
+module list
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOMEjedi}/lib/" 
 
 # link executables to working directory
 $NLN $MEANEXECDIR/calc_ensmean_fv3.x ./calc_ensmean_fv3.x
