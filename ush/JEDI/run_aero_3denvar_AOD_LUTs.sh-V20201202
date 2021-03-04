@@ -239,17 +239,17 @@ ${nln} ${jediexe} ${WorkDir}/fv3jedi_var.x
 # generate yaml block for background ensembles 
 imem=1
 rm -rf ${WorkDir}/yamlblock_mem.info
-filetype="        - filetype: gfs"
-filetrcr="          filename_trcr: fv_tracer.res.nc"
-filecplr="          filename_cplr: coupler.res"
-filevars="          state variables: *aerovars"
-filevars1="          state variables: &aerovars [sulf,bc1,bc2,oc1,oc2,
-                                                 dust1,dust2,dust3,dust4,dust5,
-                                                 seas1,seas2,seas3,seas4,seas5]"
+filetype="      - filetype: gfs"
+filetrcr="        filename_trcr: fv_tracer.res.nc"
+filecplr="        filename_cplr: coupler.res"
+filevars="        state variables: *aerovars"
+filevars1="        state variables: &aerovars [sulf,bc1,bc2,oc1,oc2,
+                                    dust1,dust2,dust3,dust4,dust5,
+                                    seas1,seas2,seas3,seas4,seas5]"
 
 while [ ${imem} -le ${nmem} ]; do
    memstr="mem`printf %03d ${imem}`"
-   filemem="          datapath: ./input/${memstr}/"
+   filemem="        datapath: ./input/${memstr}/"
    echo "${filetype}" >> ${WorkDir}/yamlblock_mem.info
    if [ ${imem} -eq 1 ];then
       echo "${filevars1}" >> ${WorkDir}/yamlblock_mem.info
@@ -347,30 +347,28 @@ cost function:
                       seas1,seas2,seas3,seas4,seas5]
   background error:
     covariance model: hybrid
-    components:
-    - covariance:
-        covariance model: ID
-        date: '${datestr}'
-      weight: 
-        value: 0.01
-    - covariance:
-        covariance model: ensemble
-        members:
+    static weight: 0.01
+    ensemble weight: 0.99
+    static:
+      date: '${datestr}'
+      covariance model: ID
+    ensemble:
+      date: '${datestr}'
+      members:
 ${yamlblock_mem}
-        localization:
-          localization variables: *aerovars
-          localization method: BUMP
-          bump:
-            prefix: ./bump/fv3jedi_bumpparameters_nicas_gfs
-            method: loc
-            strategy: common
-            load_nicas: 1
-            mpicom: 2
-            verbosity: main
-            io_keys: ["common"]
-            io_values: ["fixed_2500km_0.581"]
-      weight:
-        value: 0.99
+      localization:
+        timeslots: ['${locdatestr}']
+        localization variables: *aerovars
+        localization method: BUMP
+        bump:
+          prefix: ./bump/fv3jedi_bumpparameters_nicas_gfs
+          method: loc
+          strategy: common
+          load_nicas: 1
+          mpicom: 2
+          verbosity: main
+          io_keys: ["common"]
+          io_values: ["fixed_2500km_0.581"]
   observations:
 ${yamlblock_obs}
   cost type: 3D-Var
